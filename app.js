@@ -3,25 +3,29 @@ require('dotenv').config();
 
 require('./models/db')
 
+const userRouter = require('./routes/user')
+
 const User = require('./models/user')
 
 const app = express()
 
-const email = 'bukla@gmail.com'
+//the middleware function
+// app.use((req, res, next) => {
+//     req.on('data', chunk => {
+//       const data = JSON.parse(chunk)
+//       req.body = data;
+//       next();
+//     })
+   
+// })
 
-app.post('/create-user', async (req, res) => {
-    const isNewUser = await User.isThisEmailInUse(email)
-    if (!isNewUser)
-        return res.json({
-            sucess: false,
-            message: 'This email is already in the database. Try signing in.'
-        })
+app.use(express.json());
+app.use(userRouter)
 
-    const user = await User({ name: 'Bukola', email: email, password: '1234' });
-    //    user.isThisEmailInUse()
-    res.json(user);
-    await user.save()
+app.get('/test', (req,res) => {
+    res.send("Hello World")
 })
+
 
 app.get('/', (req, res) => {
     res.send("<h1>Hello World</h1>");
