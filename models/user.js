@@ -1,5 +1,7 @@
 const mongoose = require('mongoose');
 
+const bcrypted = require('bcrypt')
+
 //users data to store in the database
 // const user = {
 //     name: '',
@@ -24,13 +26,42 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    confirmpassword:{
+        type: String,
+        required: true,
+    },
     profileimage:{
         type: Buffer,
         // required: false,
     }
 
-})
+});
 
+//schema to hash password before storing
+userSchema.pre('save', function(next){
+    if(this.isModified('password')){
+        //to hash the password
+        bcrypted.hash(this.password, 8, (err, hash) => {
+            if(err) return next(err);
+
+            this.password = hash;
+            next();
+        })
+    }
+});
+
+//schema to compare password
+userSchema.methods.comparePassword =  async function(password){
+   if(!password) throw new Error('Password is missing.')
+
+   try {
+    const result =  await bcrypted.compare(password, this.password)
+    return result;    
+   } catch (error) {
+    console.log("Error while comparing password. ", error.message);
+    
+   }
+}
 
 userSchema.statics.isThisEmailInUse = async function(email){
     if(!email) throw new Error("Invalid Entry")
